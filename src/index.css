@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Manrope:wght@200..800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+
+  @layer base {
+    :root {
+      /* Medical Institutional with Soft Warmth - Custom Palette */
+      --background: 45 43% 96%; /* Warm cream #F5F1E8 */
+      --foreground: 180 2% 17%; /* Charcoal #2C2C2E */
+
+      --card: 45 38% 98%; /* Tinted off-white #FAFAF7 */
+      --card-foreground: 180 2% 17%;
+
+      --popover: 45 38% 98%;
+      --popover-foreground: 180 2% 17%;
+
+      --primary: 98 13% 57%; /* Muted sage green #8B9D83 */
+      --primary-foreground: 45 38% 98%;
+
+      --secondary: 210 17% 50%; /* Soft slate blue #6B7C93 */
+      --secondary-foreground: 45 38% 98%;
+
+      --muted: 98 13% 85%;
+      --muted-foreground: 210 8% 46%;
+
+      --accent: 10 49% 73%; /* Gentle coral #E89B8C */
+      --accent-foreground: 180 2% 17%;
+
+      --destructive: 10 49% 73%; /* Gentle coral for warnings */
+      --destructive-foreground: 45 38% 98%;
+
+      --success: 176 29% 29%; /* Deep teal #3A5F5C */
+      --success-foreground: 45 38% 98%;
+
+      --border: 98 13% 85%;
+      --input: 98 13% 85%;
+      --ring: 98 13% 57%;
+
+      --radius: 1rem;
+
+      --sidebar-background: 45 38% 98%;
+      --sidebar-foreground: 180 2% 17%;
+      --sidebar-primary: 98 13% 57%;
+      --sidebar-primary-foreground: 45 38% 98%;
+      --sidebar-accent: 98 13% 90%;
+      --sidebar-accent-foreground: 180 2% 17%;
+      --sidebar-border: 98 13% 85%;
+      --sidebar-ring: 98 13% 57%;
+    }
+
+    .dark {
+      --background: 180 5% 11%; /* Dark charcoal #1C1C1E */
+      --foreground: 45 38% 98%;
+
+      --card: 180 4% 15%;
+      --card-foreground: 45 38% 98%;
+
+      --popover: 180 4% 15%;
+      --popover-foreground: 45 38% 98%;
+
+      --primary: 98 13% 57%;
+      --primary-foreground: 45 38% 98%;
+
+      --secondary: 210 17% 50%;
+      --secondary-foreground: 45 38% 98%;
+
+      --muted: 180 4% 20%;
+      --muted-foreground: 210 8% 65%;
+
+      --accent: 10 49% 73%;
+      --accent-foreground: 180 2% 17%;
+
+      --destructive: 10 49% 60%;
+      --destructive-foreground: 45 38% 98%;
+
+      --success: 176 29% 29%;
+      --success-foreground: 45 38% 98%;
+
+      --border: 180 4% 20%;
+      --input: 180 4% 20%;
+      --ring: 98 13% 57%;
+      
+      --sidebar-background: 180 5% 11%;
+      --sidebar-foreground: 45 38% 98%;
+      --sidebar-primary: 98 13% 57%;
+      --sidebar-primary-foreground: 45 38% 98%;
+      --sidebar-accent: 180 4% 20%;
+      --sidebar-accent-foreground: 45 38% 98%;
+      --sidebar-border: 180 4% 20%;
+      --sidebar-ring: 98 13% 57%;
+    }
+  }
+
+  @layer base {
+    * {
+      @apply border-border;
+    }
+    body {
+      @apply bg-background text-foreground;
+      font-family: 'Manrope', sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Fraunces', serif;
+    }
+    code, pre {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  }
