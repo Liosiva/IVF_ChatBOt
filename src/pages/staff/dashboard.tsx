@@ -1,4 +1,3 @@
-import { Authenticated, Unauthenticated } from "convex/react";
 import { useState } from "react";
 import { RedirectToSignIn, useUser } from "@clerk/clerk-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import FilterControls from "@/components/staff/filter-controls";
 import { BarChart3, TrendingUp, MessageCircle } from "lucide-react";
 
 export default function StaffDashboard() {
-  const { isLoaded } = useUser();
+  const { user, isLoaded } = useUser();
   const [dateRange, setDateRange] = useState({
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0],
@@ -34,6 +33,10 @@ export default function StaffDashboard() {
     );
   }
 
+  if (!user) {
+    return <RedirectToSignIn />;
+  }
+
   // Calculate summary metrics
   const totalMessages = messageVolume
     ? Object.values(messageVolume).reduce((sum, count) => sum + count, 0)
@@ -47,10 +50,6 @@ export default function StaffDashboard() {
 
   return (
     <>
-      <Unauthenticated>
-        <RedirectToSignIn />
-      </Unauthenticated>
-      <Authenticated>
       <Navbar />
       <div className="min-h-screen bg-background">
         <div className="container mx-auto py-8 px-6 max-w-7xl">
@@ -151,7 +150,6 @@ export default function StaffDashboard() {
         </Tabs>
       </div>
     </div>
-    </Authenticated>
     </>
   );
 }

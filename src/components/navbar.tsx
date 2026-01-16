@@ -1,10 +1,11 @@
 import { SignInButton, UserButton, useUser } from "@clerk/clerk-react";
-import { Authenticated, Unauthenticated } from "convex/react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 
 export function Navbar() {
-  const { isLoaded } = useUser();
+  const { user, isLoaded } = useUser();
+
+  const isAuthenticated = isLoaded && !!user;
 
   return (
     <nav className="sticky top-0 w-full bg-card/80 backdrop-blur-xl border-b border-border/50 z-50">
@@ -18,7 +19,7 @@ export function Navbar() {
 
           {isLoaded ? (
             <div className="flex items-center gap-4">
-              <Authenticated>
+              {isAuthenticated ? (
                 <div className="hidden md:flex items-center gap-3">
                   <Link
                     to="/chat"
@@ -28,8 +29,7 @@ export function Navbar() {
                   </Link>
                   <UserButton afterSignOutUrl="/" />
                 </div>
-              </Authenticated>
-              <Unauthenticated>
+              ) : (
                 <SignInButton mode="modal" signUpFallbackRedirectUrl="/">
                   <Button
                     variant="default"
@@ -38,7 +38,7 @@ export function Navbar() {
                     Sign In
                   </Button>
                 </SignInButton>
-              </Unauthenticated>
+              )}
             </div>
           ) : (
             <div className="flex items-center gap-4">

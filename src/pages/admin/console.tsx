@@ -1,4 +1,3 @@
-import { Authenticated, Unauthenticated } from "convex/react";
 import { useState } from "react";
 import { RedirectToSignIn, useUser } from "@clerk/clerk-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,7 +8,7 @@ import StaffAccountPanel from "@/components/admin/staff-account-panel";
 import { Users, MessageSquare, UserPlus } from "lucide-react";
 
 export default function AdminConsole() {
-  const { isLoaded } = useUser();
+  const { user, isLoaded } = useUser();
   const [activeTab, setActiveTab] = useState("users");
 
   // Mock data until Convex is synced
@@ -27,12 +26,12 @@ export default function AdminConsole() {
     );
   }
 
+  if (!user) {
+    return <RedirectToSignIn />;
+  }
+
   return (
     <>
-      <Unauthenticated>
-        <RedirectToSignIn />
-      </Unauthenticated>
-      <Authenticated>
       <Navbar />
       <div className="min-h-screen bg-[#1C1C1E] text-[#FAFAF7]">
         <div className="container mx-auto py-8 px-6 max-w-7xl">
@@ -84,7 +83,6 @@ export default function AdminConsole() {
         </Tabs>
       </div>
     </div>
-    </Authenticated>
     </>
   );
 }

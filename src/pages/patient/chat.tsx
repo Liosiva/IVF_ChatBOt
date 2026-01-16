@@ -1,11 +1,10 @@
 import { useUser, RedirectToSignIn } from "@clerk/clerk-react";
-import { Authenticated, Unauthenticated } from "convex/react";
 import { Navbar } from "@/components/navbar";
 import DisclaimerBanner from "@/components/chat/disclaimer-banner";
 import WelcomeState from "@/components/chat/welcome-state";
 
 export default function PatientChat() {
-  const { isLoaded } = useUser();
+  const { user, isLoaded } = useUser();
 
   if (!isLoaded) {
     return (
@@ -18,23 +17,22 @@ export default function PatientChat() {
     );
   }
 
+  if (!user) {
+    return <RedirectToSignIn />;
+  }
+
   return (
     <>
-      <Unauthenticated>
-        <RedirectToSignIn />
-      </Unauthenticated>
-      <Authenticated>
-        <Navbar />
-        <div className="flex h-[calc(100vh-4rem)] bg-gradient-to-br from-[#8B9D83]/10 via-background to-[#F5F1E8]">
-          <div className="flex-1 flex flex-col">
-            <DisclaimerBanner />
-            
-            <div className="flex-1 overflow-hidden">
-              <WelcomeState />
-            </div>
+      <Navbar />
+      <div className="flex h-[calc(100vh-4rem)] bg-gradient-to-br from-[#8B9D83]/10 via-background to-[#F5F1E8]">
+        <div className="flex-1 flex flex-col">
+          <DisclaimerBanner />
+          
+          <div className="flex-1 overflow-hidden">
+            <WelcomeState />
           </div>
         </div>
-      </Authenticated>
+      </div>
     </>
   );
 }

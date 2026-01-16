@@ -2,7 +2,6 @@ import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { SignInButton, useUser } from "@clerk/clerk-react";
-import { Authenticated, Unauthenticated } from "convex/react";
 import { Heart, MessageCircle, BarChart3, Shield } from "lucide-react";
 import { useNavigate } from "react-router";
 
@@ -37,6 +36,8 @@ function App() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const navigate = useNavigate();
 
+  const isAuthenticated = isUserLoaded && !!user;
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#F5F1E8] via-background to-[#8B9D83]/10">
       <Navbar />
@@ -58,7 +59,7 @@ function App() {
               </div>
             ) : (
               <div className="flex items-center gap-5 pt-4">
-                <Unauthenticated>
+                {!isAuthenticated ? (
                   <SignInButton mode="modal">
                     <Button 
                       className="h-12 px-8 text-base rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-all"
@@ -66,15 +67,14 @@ function App() {
                       Get Started
                     </Button>
                   </SignInButton>
-                </Unauthenticated>
-                <Authenticated>
+                ) : (
                   <Button 
                     onClick={() => navigate("/chat")}
                     className="h-12 px-8 text-base rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-all"
                   >
                     Go to Chat
                   </Button>
-                </Authenticated>
+                )}
               </div>
             )}
           </div>
@@ -99,7 +99,7 @@ function App() {
               <h2 className="text-4xl font-light mb-4">Ready to begin?</h2>
               <p className="text-xl mb-8 opacity-90">Start your conversation with our IVF support chatbot today.</p>
               <div className="flex items-center justify-center gap-5">
-                <Unauthenticated>
+                {!isAuthenticated ? (
                   <SignInButton mode="modal">
                     <Button 
                       variant="default"
@@ -108,15 +108,14 @@ function App() {
                       Get Started
                     </Button>
                   </SignInButton>
-                </Unauthenticated>
-                <Authenticated>
+                ) : (
                   <Button 
                     onClick={() => navigate("/chat")}
                     className="h-12 px-8 text-base rounded-2xl bg-background text-foreground hover:bg-background/90 transition-all shadow-lg"
                   >
                     Go to Chat
                   </Button>
-                </Authenticated>
+                )}
               </div>
             </div>
           </div>

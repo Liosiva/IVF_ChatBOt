@@ -1,5 +1,4 @@
 import { useUser, RedirectToSignIn } from "@clerk/clerk-react";
-import { Authenticated, Unauthenticated } from "convex/react";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { User, Database, Clock, Shield } from "lucide-react";
@@ -21,12 +20,12 @@ export default function Dashboard() {
         );
     }
 
+    if (!user) {
+        return <RedirectToSignIn />;
+    }
+
     return (
         <>
-        <Unauthenticated>
-            <RedirectToSignIn />
-        </Unauthenticated>
-        <Authenticated>
         <div className="min-h-screen flex flex-col bg-[#FBFBFD]">
             <Navbar />
             <main className="flex-grow">
@@ -129,7 +128,6 @@ export default function Dashboard() {
             </main>
             <Footer />
         </div>
-        </Authenticated>
         </>
     );
 }
