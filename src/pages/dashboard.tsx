@@ -1,18 +1,32 @@
-import { useUser } from "@clerk/clerk-react";
-import { useQuery } from "convex/react";
-import { api } from "@/../convex/_generated/api";
+import { useUser, RedirectToSignIn } from "@clerk/clerk-react";
+import { Authenticated, Unauthenticated } from "convex/react";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, User, Database, Clock, Shield } from "lucide-react";
+import { User, Database, Clock, Shield } from "lucide-react";
 
 export default function Dashboard() {
-    const { user } = useUser();
-    const userData = useQuery(api.users.getUserByToken,
-        user?.id ? { tokenIdentifier: user.id } : "skip"
-    );
+    const { user, isLoaded } = useUser();
+    
+    // Mock data until Convex syncs
+    const userData = null;
+
+    if (!isLoaded) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-4 text-muted-foreground">Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
+        <>
+        <Unauthenticated>
+            <RedirectToSignIn />
+        </Unauthenticated>
+        <Authenticated>
         <div className="min-h-screen flex flex-col bg-[#FBFBFD]">
             <Navbar />
             <main className="flex-grow">
@@ -115,6 +129,8 @@ export default function Dashboard() {
             </main>
             <Footer />
         </div>
+        </Authenticated>
+        </>
     );
 }
 

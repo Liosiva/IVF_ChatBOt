@@ -1,8 +1,5 @@
-import { useUser } from "@clerk/clerk-react";
-import { useQuery } from "convex/react";
+import { useUser, RedirectToSignIn } from "@clerk/clerk-react";
 import { ReactNode } from "react";
-import { Navigate } from "react-router";
-import { api } from "@/../convex/_generated/api";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -22,13 +19,6 @@ function LoadingSpinner() {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, isLoaded: isUserLoaded } = useUser();
   
-  // Only query if user is loaded and exists
-  const userData = useQuery(
-    api.users.getUserByToken,
-    isUserLoaded && user?.id ? { tokenIdentifier: user.id } : "skip"
-  );
-  
-  // Only query subscription if we have user data
   // Step 1: Wait for Clerk to initialize
   if (!isUserLoaded) {
     return <LoadingSpinner />;
@@ -36,17 +26,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   // Step 2: Check if user is authenticated
   if (!user) {
-    return <Navigate to="/" replace />;
-  }
-
-  // Step 3: Wait for user data to load
-  if (userData === undefined) {
-    return <LoadingSpinner />;
-  }
-
-  // Step 4: Check if user exists in database
-  if (userData === null) {
-    return <Navigate to="/" replace />;
+    return <RedirectToSignIn />;
   }
 
   // All checks passed, render protected content

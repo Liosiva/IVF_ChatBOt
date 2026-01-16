@@ -1,8 +1,6 @@
-import { Suspense, useEffect } from "react";
-import { Route, Routes, useRoutes, useNavigate } from "react-router-dom";
+import { Suspense } from "react";
+import { Route, Routes, useRoutes } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/../convex/_generated/api";
 import routes from "tempo-routes";
 import Dashboard from "./pages/dashboard";
 import Home from "./pages/home";
@@ -11,40 +9,12 @@ import StaffDashboard from "./pages/staff/dashboard";
 import AdminConsole from "./pages/admin/console";
 import { Toaster } from "@/components/ui/sonner";
 
+function TempoRoutes() {
+  return import.meta.env.VITE_TEMPO === "true" ? useRoutes(routes) : null;
+}
+
 function App() {
-  const { user, isLoaded } = useUser();
-  const navigate = useNavigate();
-  
-  const currentUser = useQuery(
-    api.users.getUserByToken,
-    user ? { tokenIdentifier: user.id } : "skip"
-  );
-  
-  const createOrUpdateUser = useMutation(api.users.createOrUpdateUser);
-
-  // Create or update user on mount
-  useEffect(() => {
-    if (isLoaded && user) {
-      createOrUpdateUser();
-    }
-  }, [isLoaded, user, createOrUpdateUser]);
-
-  // Role-based redirect on login
-  useEffect(() => {
-    if (currentUser && window.location.pathname === "/") {
-      switch (currentUser.role) {
-        case "patient":
-          navigate("/chat");
-          break;
-        case "staff":
-          navigate("/staff");
-          break;
-        case "admin":
-          navigate("/admin");
-          break;
-      }
-    }
-  }, [currentUser, navigate]);
+  const { isLoaded } = useUser();
 
   if (!isLoaded) {
     return (
@@ -74,7 +44,7 @@ function App() {
           <Route path="/staff" element={<StaffDashboard />} />
           <Route path="/admin" element={<AdminConsole />} />
         </Routes>
-        {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
+        <TempoRoutes />
         <Toaster />
       </>
     </Suspense>

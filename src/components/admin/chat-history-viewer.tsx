@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Id } from "@/../convex/_generated/dataModel";
 import {
   Table,
   TableBody,
@@ -15,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatMessage {
-  _id: Id<"chatMessages">;
+  _id: string;
   role: "user" | "assistant";
   content: string;
   sources?: string[];

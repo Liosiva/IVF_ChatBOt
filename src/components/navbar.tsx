@@ -1,38 +1,10 @@
 import { SignInButton, UserButton, useUser } from "@clerk/clerk-react";
-import { Authenticated, Unauthenticated, useMutation, useQuery } from "convex/react";
-import { useEffect } from "react";
+import { Authenticated, Unauthenticated } from "convex/react";
 import { Link } from "react-router-dom";
-import { api } from "@/../convex/_generated/api";
 import { Button } from "./ui/button";
 
 export function Navbar() {
-  const { user, isLoaded } = useUser();
-  const createOrUpdateUser = useMutation(api.users.createOrUpdateUser);
-  
-  const currentUser = useQuery(
-    api.users.getUserByToken,
-    user ? { tokenIdentifier: user.id } : "skip"
-  );
-  
-  useEffect(() => {
-    if (user) {
-      createOrUpdateUser();
-    }
-  }, [user, createOrUpdateUser]);
-
-  const getNavLink = () => {
-    if (!currentUser) return "/";
-    switch (currentUser.role) {
-      case "patient":
-        return "/chat";
-      case "staff":
-        return "/staff";
-      case "admin":
-        return "/admin";
-      default:
-        return "/";
-    }
-  };
+  const { isLoaded } = useUser();
 
   return (
     <nav className="sticky top-0 w-full bg-card/80 backdrop-blur-xl border-b border-border/50 z-50">
@@ -48,16 +20,12 @@ export function Navbar() {
             <div className="flex items-center gap-4">
               <Authenticated>
                 <div className="hidden md:flex items-center gap-3">
-                  {currentUser && (
-                    <Link
-                      to={getNavLink()}
-                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-foreground bg-muted hover:bg-muted/80 rounded-2xl transition-colors duration-200"
-                    >
-                      {currentUser.role === "patient" && "My Chat"}
-                      {currentUser.role === "staff" && "Analytics"}
-                      {currentUser.role === "admin" && "Admin Console"}
-                    </Link>
-                  )}
+                  <Link
+                    to="/chat"
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-foreground bg-muted hover:bg-muted/80 rounded-2xl transition-colors duration-200"
+                  >
+                    My Chat
+                  </Link>
                   <UserButton afterSignOutUrl="/" />
                 </div>
               </Authenticated>

@@ -1,7 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/../convex/_generated/api";
-import { Id } from "@/../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,7 +6,7 @@ import { Send, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Message {
-  _id: Id<"chatMessages">;
+  _id: string;
   role: "user" | "assistant";
   content: string;
   sources?: string[];
@@ -17,23 +14,26 @@ interface Message {
 }
 
 interface ChatCanvasProps {
-  sessionId: Id<"chatSessions">;
-  userId: Id<"users">;
+  sessionId?: string;
+  userId?: string;
   messages: Message[];
 }
 
 export default function ChatCanvas({ sessionId, userId, messages }: ChatCanvasProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [localMessages, setLocalMessages] = useState<Message[]>(messages);
   const scrollRef = useRef<HTMLDivElement>(null);
-  
-  const addMessage = useMutation(api.chatSessions.addMessage);
+
+  useEffect(() => {
+    setLocalMessages(messages);
+  }, [messages]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [localMessages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,38 +43,34 @@ export default function ChatCanvas({ sessionId, userId, messages }: ChatCanvasPr
     setInput("");
     setIsLoading(true);
 
-    try {
-      // Add user message
-      await addMessage({
-        sessionId,
-        userId,
-        role: "user",
-        content: userMessage,
-      });
+    // Add user message locally
+    const newUserMessage: Message = {
+      _id: `local-${Date.now()}`,
+      role: "user",
+      content: userMessage,
+      createdAt: Date.now(),
+    };
+    setLocalMessages(prev => [...prev, newUserMessage]);
 
-      // TODO: Call Flask RAG API here
-      // For now, simulate a response
-      setTimeout(async () => {
-        await addMessage({
-          sessionId,
-          userId,
-          role: "assistant",
-          content: "This is a simulated response. The Flask RAG API integration is pending.",
-          sources: ["Example Source 1", "Example Source 2"],
-        });
-        setIsLoading(false);
-      }, 1500);
-    } catch (error) {
-      console.error("Error sending message:", error);
+    // Simulate assistant response (Convex not connected yet)
+    setTimeout(() => {
+      const assistantMessage: Message = {
+        _id: `local-${Date.now() + 1}`,
+        role: "assistant",
+        content: "This is a simulated response. The Convex backend is being set up.",
+        sources: ["Demo Source 1", "Demo Source 2"],
+        createdAt: Date.now(),
+      };
+      setLocalMessages(prev => [...prev, assistantMessage]);
       setIsLoading(false);
-    }
+    }, 1500);
   };
 
   return (
     <div className="flex flex-col h-full max-w-[720px] mx-auto px-12 py-8">
       <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
         <AnimatePresence initial={false}>
-          {messages.map((message, index) => (
+          {localMessages.map((message, index) => (
             <motion.div
               key={message._id}
               initial={{ opacity: 0, y: 20 }}

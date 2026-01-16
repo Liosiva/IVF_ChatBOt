@@ -1,6 +1,6 @@
-import { useQuery } from "convex/react";
-import { api } from "@/../convex/_generated/api";
+import { Authenticated, Unauthenticated } from "convex/react";
 import { useState } from "react";
+import { RedirectToSignIn, useUser } from "@clerk/clerk-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navbar } from "@/components/navbar";
 import UserManagementTable from "@/components/admin/user-management-table";
@@ -9,13 +9,30 @@ import StaffAccountPanel from "@/components/admin/staff-account-panel";
 import { Users, MessageSquare, UserPlus } from "lucide-react";
 
 export default function AdminConsole() {
+  const { isLoaded } = useUser();
   const [activeTab, setActiveTab] = useState("users");
 
-  const users = useQuery(api.admin.getAllUsers);
-  const chatHistory = useQuery(api.admin.getAllChatHistory, { limit: 100 });
+  // Mock data until Convex is synced
+  const users: Array<{ _id: string; name?: string; email?: string; role?: string; createdAt?: number }> = [];
+  const chatHistory: Array<{ _id: string; userId: string; messages: Array<{ content: string; role: string }>; createdAt: number }> = [];
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
+      <Unauthenticated>
+        <RedirectToSignIn />
+      </Unauthenticated>
+      <Authenticated>
       <Navbar />
       <div className="min-h-screen bg-[#1C1C1E] text-[#FAFAF7]">
         <div className="container mx-auto py-8 px-6 max-w-7xl">
@@ -67,6 +84,7 @@ export default function AdminConsole() {
         </Tabs>
       </div>
     </div>
+    </Authenticated>
     </>
   );
 }

@@ -1,7 +1,4 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/../convex/_generated/api";
-import { Id } from "@/../convex/_generated/dataModel";
 import {
   Table,
   TableBody,
@@ -35,11 +32,11 @@ import {
 import { toast } from "sonner";
 
 interface User {
-  _id: Id<"users">;
+  _id: string;
   name?: string;
   email?: string;
-  role: "patient" | "staff" | "admin";
-  createdAt: number;
+  role?: string;
+  createdAt?: number;
 }
 
 interface UserManagementTableProps {
@@ -49,35 +46,20 @@ interface UserManagementTableProps {
 export default function UserManagementTable({ users }: UserManagementTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
-  
-  const clearUserHistory = useMutation(api.chatSessions.clearUserHistory);
-  const updateUserRole = useMutation(api.admin.updateUserRole);
 
-  const handleClearHistory = async (userId: Id<"users">) => {
-    try {
-      await clearUserHistory({ userId });
-      toast.success("User history cleared");
-    } catch (error) {
-      toast.error("Failed to clear history");
-      console.error(error);
-    }
+  const handleClearHistory = async (userId: string) => {
+    toast.info("Clear history feature requires Convex backend setup");
   };
 
-  const handleRoleChange = async (userId: Id<"users">, newRole: "patient" | "staff" | "admin") => {
-    try {
-      await updateUserRole({ userId, role: newRole });
-      toast.success("User role updated");
-    } catch (error) {
-      toast.error("Failed to update role");
-      console.error(error);
-    }
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    toast.info("Role change feature requires Convex backend setup");
   };
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+    const matchesRole = roleFilter === "all" || (user.role || "patient") === roleFilter;
     return matchesSearch && matchesRole;
   });
 
@@ -139,12 +121,12 @@ export default function UserManagementTable({ users }: UserManagementTableProps)
                 </TableCell>
                 <TableCell>
                   <Select
-                    value={user.role}
-                    onValueChange={(value: any) => handleRoleChange(user._id, value)}
+                    value={user.role || "patient"}
+                    onValueChange={(value: string) => handleRoleChange(user._id, value)}
                   >
                     <SelectTrigger className="w-[120px] h-8 bg-transparent border-gray-600">
-                      <Badge className={getRoleBadgeColor(user.role)} variant="outline">
-                        {user.role}
+                      <Badge className={getRoleBadgeColor(user.role || "patient")} variant="outline">
+                        {user.role || "patient"}
                       </Badge>
                     </SelectTrigger>
                     <SelectContent>
@@ -155,7 +137,7 @@ export default function UserManagementTable({ users }: UserManagementTableProps)
                   </Select>
                 </TableCell>
                 <TableCell className="font-mono text-xs text-gray-400">
-                  {new Date(user.createdAt).toLocaleDateString()}
+                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
                 </TableCell>
                 <TableCell className="text-right">
                   <AlertDialog>

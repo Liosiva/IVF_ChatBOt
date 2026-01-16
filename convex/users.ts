@@ -20,7 +20,11 @@ export const getUserByToken = query({
       .unique();
 
     if (user !== null) {
-      return user;
+      // Return user with default role if not set
+      return {
+        ...user,
+        role: user.role || "patient",
+      };
     }
 
     return null;
@@ -44,14 +48,21 @@ export const createOrUpdateUser = mutation({
       .unique();
 
     if (existingUser) {
-      // Update if needed
-      if (existingUser.name !== identity.name || existingUser.email !== identity.email) {
-        await ctx.db.patch(existingUser._id, {
-          name: identity.name,
-          email: identity.email,
-        });
+      // Update if needed - also set role if not set
+      const updates: Record<string, unknown> = {};
+      if (existingUser.name !== identity.name) updates.name = identity.name;
+      if (existingUser.email !== identity.email) updates.email = identity.email;
+      if (!existingUser.role) updates.role = "patient";
+      if (!existingUser.createdAt) updates.createdAt = Date.now();
+      
+      if (Object.keys(updates).length > 0) {
+        await ctx.db.patch(existingUser._id, updates);
       }
-      return existingUser;
+      return {
+        ...existingUser,
+        ...updates,
+        role: existingUser.role || "patient",
+      };
     }
 
     // Create new user with default "patient" role
@@ -59,7 +70,7 @@ export const createOrUpdateUser = mutation({
       name: identity.name,
       email: identity.email,
       tokenIdentifier: identity.subject,
-      role: "patient", // Default role for new users
+      role: "patient",
       createdAt: Date.now(),
     });
 

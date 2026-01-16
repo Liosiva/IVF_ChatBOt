@@ -1,10 +1,7 @@
-import { Id } from "@/../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, MessageCircle, Clock, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useMutation } from "convex/react";
-import { api } from "@/../convex/_generated/api";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +16,7 @@ import {
 import { toast } from "sonner";
 
 interface Session {
-  _id: Id<"chatSessions">;
+  _id: string;
   title?: string;
   createdAt: number;
   updatedAt: number;
@@ -27,9 +24,9 @@ interface Session {
 
 interface SessionSidebarProps {
   sessions: Session[];
-  activeSessionId: Id<"chatSessions"> | null;
-  userId: Id<"users">;
-  onSelectSession: (sessionId: Id<"chatSessions">) => void;
+  activeSessionId: string | null;
+  userId?: string;
+  onSelectSession: (sessionId: string) => void;
   onNewSession: () => void;
 }
 
@@ -40,28 +37,14 @@ export default function SessionSidebar({
   onSelectSession,
   onNewSession,
 }: SessionSidebarProps) {
-  const clearHistory = useMutation(api.chatSessions.clearUserHistory);
-  const deleteSession = useMutation(api.chatSessions.deleteSession);
 
-  const handleClearHistory = async (userId: Id<"users">) => {
-    try {
-      await clearHistory({ userId });
-      toast.success("Chat history cleared successfully");
-    } catch (error) {
-      toast.error("Failed to clear history");
-      console.error(error);
-    }
+  const handleClearHistory = async () => {
+    toast.info("Clear history feature requires Convex backend setup");
   };
 
-  const handleDeleteSession = async (sessionId: Id<"chatSessions">, e: React.MouseEvent) => {
+  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      await deleteSession({ sessionId });
-      toast.success("Session deleted");
-    } catch (error) {
-      toast.error("Failed to delete session");
-      console.error(error);
-    }
+    toast.info("Delete session feature requires Convex backend setup");
   };
 
   const formatDate = (timestamp: number) => {
@@ -150,7 +133,7 @@ export default function SessionSidebar({
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
-                  handleClearHistory(userId);
+                  handleClearHistory();
                 }}
                 className="bg-destructive hover:bg-destructive/90"
               >

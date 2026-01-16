@@ -1,15 +1,16 @@
-import { useQuery } from "convex/react";
-import { api } from "@/../convex/_generated/api";
+import { Authenticated, Unauthenticated } from "convex/react";
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RedirectToSignIn, useUser } from "@clerk/clerk-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navbar } from "@/components/navbar";
 import AnalyticsGrid from "@/components/staff/analytics-grid";
 import ChartModules from "@/components/staff/chart-modules";
 import FilterControls from "@/components/staff/filter-controls";
-import { BarChart3, TrendingUp, MessageCircle, Calendar } from "lucide-react";
+import { BarChart3, TrendingUp, MessageCircle } from "lucide-react";
 
 export default function StaffDashboard() {
+  const { isLoaded } = useUser();
   const [dateRange, setDateRange] = useState({
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0],
@@ -17,20 +18,21 @@ export default function StaffDashboard() {
 
   const [viewMode, setViewMode] = useState<"daily" | "weekly" | "monthly">("daily");
 
-  const analytics = useQuery(
-    api.analytics.getAnalyticsByDateRange,
-    { startDate: dateRange.start, endDate: dateRange.end }
-  );
+  // Mock data until Convex is synced
+  const analytics: Array<{ topic: string; count: number; date: string }> = [];
+  const messageVolume: Record<string, number> = {};
+  const topicAnalytics: Array<{ topic: string; count: number }> = [];
 
-  const messageVolume = useQuery(
-    api.analytics.getMessageVolumeByDate,
-    {
-      startDate: new Date(dateRange.start).getTime(),
-      endDate: new Date(dateRange.end).getTime(),
-    }
-  );
-
-  const topicAnalytics = useQuery(api.analytics.getTopicAnalytics, {});
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Calculate summary metrics
   const totalMessages = messageVolume
@@ -45,6 +47,10 @@ export default function StaffDashboard() {
 
   return (
     <>
+      <Unauthenticated>
+        <RedirectToSignIn />
+      </Unauthenticated>
+      <Authenticated>
       <Navbar />
       <div className="min-h-screen bg-background">
         <div className="container mx-auto py-8 px-6 max-w-7xl">
@@ -145,6 +151,7 @@ export default function StaffDashboard() {
         </Tabs>
       </div>
     </div>
+    </Authenticated>
     </>
   );
 }

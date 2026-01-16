@@ -1,14 +1,15 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+// IVF Patient Support Platform Schema
 export default defineSchema({
     users: defineTable({
         name: v.optional(v.string()),
         email: v.optional(v.string()),
         image: v.optional(v.string()),
         tokenIdentifier: v.string(),
-        role: v.union(v.literal("patient"), v.literal("staff"), v.literal("admin")),
-        createdAt: v.number(),
+        role: v.optional(v.union(v.literal("patient"), v.literal("staff"), v.literal("admin"))),
+        createdAt: v.optional(v.number()),
     })
         .index("by_token", ["tokenIdentifier"])
         .index("by_role", ["role"]),
@@ -37,7 +38,7 @@ export default defineSchema({
     analytics: defineTable({
         topic: v.string(),
         count: v.number(),
-        date: v.string(), // YYYY-MM-DD format
+        date: v.string(),
         lastUpdated: v.number(),
     })
         .index("by_date", ["date"])
