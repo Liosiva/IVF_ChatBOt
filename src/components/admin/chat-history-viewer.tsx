@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
 import {
   Table,
   TableBody,
@@ -9,12 +12,14 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Download, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, Download, ChevronDown, ChevronRight, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatMessage {
-  _id: string;
+  _id: Id<"chatMessages">;
+  sessionId: Id<"chatSessions">;
+  userId: Id<"users">;
   role: "user" | "assistant";
   content: string;
   sources?: string[];

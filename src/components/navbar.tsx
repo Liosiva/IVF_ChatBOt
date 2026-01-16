@@ -1,11 +1,42 @@
 import { SignInButton, UserButton, useUser } from "@clerk/clerk-react";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 
 export function Navbar() {
   const { user, isLoaded } = useUser();
+  const currentUser = useQuery(api.users.getCurrentUser);
 
   const isAuthenticated = isLoaded && !!user;
+
+  const getNavLink = () => {
+    if (!currentUser) return "/chat";
+    switch (currentUser.role) {
+      case "patient":
+        return "/chat";
+      case "staff":
+        return "/staff";
+      case "admin":
+        return "/admin";
+      default:
+        return "/chat";
+    }
+  };
+
+  const getNavLabel = () => {
+    if (!currentUser) return "My Chat";
+    switch (currentUser.role) {
+      case "patient":
+        return "My Chat";
+      case "staff":
+        return "Analytics";
+      case "admin":
+        return "Admin Console";
+      default:
+        return "My Chat";
+    }
+  };
 
   return (
     <nav className="sticky top-0 w-full bg-card/80 backdrop-blur-xl border-b border-border/50 z-50">
@@ -22,10 +53,10 @@ export function Navbar() {
               {isAuthenticated ? (
                 <div className="hidden md:flex items-center gap-3">
                   <Link
-                    to="/chat"
+                    to={getNavLink()}
                     className="inline-flex items-center px-4 py-2 text-sm font-medium text-foreground bg-muted hover:bg-muted/80 rounded-2xl transition-colors duration-200"
                   >
-                    My Chat
+                    {getNavLabel()}
                   </Link>
                   <UserButton afterSignOutUrl="/" />
                 </div>

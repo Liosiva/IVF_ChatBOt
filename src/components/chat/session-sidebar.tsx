@@ -1,3 +1,6 @@
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, MessageCircle, Clock, Trash2 } from "lucide-react";
@@ -16,7 +19,7 @@ import {
 import { toast } from "sonner";
 
 interface Session {
-  _id: string;
+  _id: Id<"chatSessions">;
   title?: string;
   createdAt: number;
   updatedAt: number;
@@ -24,9 +27,9 @@ interface Session {
 
 interface SessionSidebarProps {
   sessions: Session[];
-  activeSessionId: string | null;
-  userId?: string;
-  onSelectSession: (sessionId: string) => void;
+  activeSessionId: Id<"chatSessions"> | null;
+  userId: Id<"users">;
+  onSelectSession: (sessionId: Id<"chatSessions">) => void;
   onNewSession: () => void;
 }
 
@@ -37,14 +40,28 @@ export default function SessionSidebar({
   onSelectSession,
   onNewSession,
 }: SessionSidebarProps) {
+  const clearHistory = useMutation(api.chatSessions.clearUserHistory);
+  const deleteSession = useMutation(api.chatSessions.deleteSession);
 
   const handleClearHistory = async () => {
-    toast.info("Clear history feature requires Convex backend setup");
+    try {
+      await clearHistory({ userId });
+      toast.success("Chat history cleared successfully");
+    } catch (error) {
+      toast.error("Failed to clear history");
+      console.error(error);
+    }
   };
 
-  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
+  const handleDeleteSession = async (sessionId: Id<"chatSessions">, e: React.MouseEvent) => {
     e.stopPropagation();
-    toast.info("Delete session feature requires Convex backend setup");
+    try {
+      await deleteSession({ sessionId });
+      toast.success("Session deleted");
+    } catch (error) {
+      toast.error("Failed to delete session");
+      console.error(error);
+    }
   };
 
   const formatDate = (timestamp: number) => {

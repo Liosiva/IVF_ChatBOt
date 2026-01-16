@@ -1,6 +1,8 @@
-import { Suspense } from "react";
-import { Route, Routes, useRoutes } from "react-router-dom";
+import { Suspense, useEffect } from "react";
+import { Route, Routes, useRoutes, useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../convex/_generated/api";
 import routes from "tempo-routes";
 import Dashboard from "./pages/dashboard";
 import Home from "./pages/home";
@@ -14,7 +16,38 @@ function TempoRoutes() {
 }
 
 function App() {
-  const { isLoaded } = useUser();
+  const { user, isLoaded } = useUser();
+  const navigate = useNavigate();
+  
+  const currentUser = useQuery(
+    api.users.getCurrentUser
+  );
+  
+  const createOrUpdateUser = useMutation(api.users.createOrUpdateUser);
+
+  // Create or update user on login
+  useEffect(() => {
+    if (isLoaded && user) {
+      createOrUpdateUser().catch(console.error);
+    }
+  }, [isLoaded, user, createOrUpdateUser]);
+
+  // Role-based redirect on login
+  useEffect(() => {
+    if (currentUser && window.location.pathname === "/") {
+      switch (currentUser.role) {
+        case "patient":
+          navigate("/chat");
+          break;
+        case "staff":
+          navigate("/staff");
+          break;
+        case "admin":
+          navigate("/admin");
+          break;
+      }
+    }
+  }, [currentUser, navigate]);
 
   if (!isLoaded) {
     return (

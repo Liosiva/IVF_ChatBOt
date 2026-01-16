@@ -1,19 +1,22 @@
 import { useState } from "react";
 import { RedirectToSignIn, useUser } from "@clerk/clerk-react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navbar } from "@/components/navbar";
 import UserManagementTable from "@/components/admin/user-management-table";
 import ChatHistoryViewer from "@/components/admin/chat-history-viewer";
 import StaffAccountPanel from "@/components/admin/staff-account-panel";
-import { Users, MessageSquare, UserPlus } from "lucide-react";
+import { Users, MessageSquare, UserPlus, BarChart3 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AdminConsole() {
   const { user, isLoaded } = useUser();
   const [activeTab, setActiveTab] = useState("users");
 
-  // Mock data until Convex is synced
-  const users: Array<{ _id: string; name?: string; email?: string; role?: string; createdAt?: number }> = [];
-  const chatHistory: Array<{ _id: string; userId: string; messages: Array<{ content: string; role: string }>; createdAt: number }> = [];
+  const users = useQuery(api.admin.getAllUsers);
+  const chatHistory = useQuery(api.admin.getAllChatHistory, { limit: 100 });
+  const systemStats = useQuery(api.admin.getSystemStats);
 
   if (!isLoaded) {
     return (
@@ -43,6 +46,51 @@ export default function AdminConsole() {
             System oversight and user management
           </p>
         </div>
+
+        {/* System Stats */}
+        {systemStats && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <Card className="bg-[#2C2C2E] border-gray-700">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-400">Total Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-[#FAFAF7]">{systemStats.totalUsers}</div>
+                <p className="text-xs text-gray-500">
+                  {systemStats.patientCount} patients, {systemStats.staffCount} staff, {systemStats.adminCount} admins
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-[#2C2C2E] border-gray-700">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-400">Chat Sessions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-[#FAFAF7]">{systemStats.totalSessions}</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-[#2C2C2E] border-gray-700">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-400">Total Messages</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-[#FAFAF7]">{systemStats.totalMessages}</div>
+                <p className="text-xs text-gray-500">
+                  {systemStats.messagesLast7Days} in last 7 days
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-[#2C2C2E] border-gray-700">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-400">Vector Embeddings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-[#FAFAF7]">{systemStats.vectorEmbeddings}</div>
+                <p className="text-xs text-gray-500">RAG knowledge base</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-[#2C2C2E] border border-gray-700">

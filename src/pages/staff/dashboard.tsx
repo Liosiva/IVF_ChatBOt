@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { RedirectToSignIn, useUser } from "@clerk/clerk-react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navbar } from "@/components/navbar";
@@ -17,10 +19,20 @@ export default function StaffDashboard() {
 
   const [viewMode, setViewMode] = useState<"daily" | "weekly" | "monthly">("daily");
 
-  // Mock data until Convex is synced
-  const analytics: Array<{ topic: string; count: number; date: string }> = [];
-  const messageVolume: Record<string, number> = {};
-  const topicAnalytics: Array<{ topic: string; count: number }> = [];
+  const analytics = useQuery(
+    api.analytics.getAnalyticsByDateRange,
+    { startDate: dateRange.start, endDate: dateRange.end }
+  );
+
+  const messageVolume = useQuery(
+    api.analytics.getMessageVolumeByDate,
+    {
+      startDate: new Date(dateRange.start).getTime(),
+      endDate: new Date(dateRange.end).getTime(),
+    }
+  );
+
+  const topicAnalytics = useQuery(api.analytics.getTopicAnalytics, {});
 
   if (!isLoaded) {
     return (
@@ -44,7 +56,7 @@ export default function StaffDashboard() {
 
   const totalTopics = topicAnalytics?.length || 0;
 
-  const avgMessagesPerDay = messageVolume
+  const avgMessagesPerDay = messageVolume && Object.keys(messageVolume).length > 0
     ? totalMessages / Object.keys(messageVolume).length
     : 0;
 
