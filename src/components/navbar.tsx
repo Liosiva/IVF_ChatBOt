@@ -2,7 +2,7 @@ import { SignInButton, UserButton, useUser } from "@clerk/clerk-react";
 import { Authenticated, Unauthenticated, useMutation, useQuery } from "convex/react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../../convex/_generated/api";
+import { api } from "@/../convex/_generated/api";
 import { Button } from "./ui/button";
 
 export function Navbar() {

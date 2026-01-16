@@ -1,10 +1,10 @@
-import { Id } from "../../../convex/_generated/dataModel";
+import { Id } from "@/../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, MessageCircle, Clock, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "@/../convex/_generated/api";
 import {
   AlertDialog,
   AlertDialogAction,

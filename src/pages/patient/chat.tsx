@@ -1,8 +1,8 @@
 import { useUser } from "@clerk/clerk-react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "@/../convex/_generated/api";
 import { useEffect, useState } from "react";
-import { Id } from "../../convex/_generated/dataModel";
+import { Id } from "@/../convex/_generated/dataModel";
 import { Navbar } from "@/components/navbar";
 import ChatCanvas from "@/components/chat/chat-canvas";
 import SessionSidebar from "@/components/chat/session-sidebar";

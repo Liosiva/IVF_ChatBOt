@@ -2,7 +2,7 @@ import { Suspense, useEffect } from "react";
 import { Route, Routes, useRoutes, useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
+import { api } from "@/../convex/_generated/api";
 import routes from "tempo-routes";
 import Dashboard from "./pages/dashboard";
 import Home from "./pages/home";

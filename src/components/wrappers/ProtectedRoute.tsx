@@ -2,7 +2,7 @@ import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "convex/react";
 import { ReactNode } from "react";
 import { Navigate } from "react-router";
-import { api } from "../../../convex/_generated/api";
+import { api } from "@/../convex/_generated/api";
 
 interface ProtectedRouteProps {
   children: ReactNode;
