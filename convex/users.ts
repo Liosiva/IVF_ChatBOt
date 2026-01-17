@@ -1,6 +1,9 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+// User management functions for IVF Patient Support Chatbot
+// Sync trigger: force-deploy-v4
+
 export const getUserByToken = query({
   args: { tokenIdentifier: v.string() },
   handler: async (ctx, args) => {

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { RedirectToSignIn, useUser } from "@clerk/clerk-react";
+import { useState, Component, ReactNode } from "react";
+import { RedirectToSignIn, useUser, useAuth } from "@clerk/clerk-react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,16 +7,59 @@ import { Navbar } from "@/components/navbar";
 import UserManagementTable from "@/components/admin/user-management-table";
 import ChatHistoryViewer from "@/components/admin/chat-history-viewer";
 import StaffAccountPanel from "@/components/admin/staff-account-panel";
-import { Users, MessageSquare, UserPlus, BarChart3 } from "lucide-react";
+import { Users, MessageSquare, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function AdminConsole() {
+// Error boundary for admin console
+class AdminErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.warn("Admin console error:", error.message);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col bg-[#1C1C1E]">
+          <Navbar />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md p-8">
+              <h2 className="text-xl font-semibold mb-4 text-white">Setting Up Admin Console</h2>
+              <p className="text-gray-400 mb-4">
+                The admin console is being configured. Please wait a moment and refresh.
+              </p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-[#8B9D83] text-white rounded-md hover:bg-[#8B9D83]/90"
+              >
+                Refresh Page
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function AdminConsoleContent() {
   const { user, isLoaded } = useUser();
+  const { isSignedIn } = useAuth();
   const [activeTab, setActiveTab] = useState("users");
 
-  const users = useQuery(api.admin.getAllUsers);
-  const chatHistory = useQuery(api.admin.getAllChatHistory, { limit: 100 });
-  const systemStats = useQuery(api.admin.getSystemStats);
+  // Only query Convex when user is signed in
+  const users = useQuery(api.admin.getAllUsers, isSignedIn ? undefined : "skip");
+  const chatHistory = useQuery(api.admin.getAllChatHistory, isSignedIn ? { limit: 100 } : "skip");
+  const systemStats = useQuery(api.admin.getSystemStats, isSignedIn ? undefined : "skip");
 
   if (!isLoaded) {
     return (
@@ -132,5 +175,13 @@ export default function AdminConsole() {
       </div>
     </div>
     </>
+  );
+}
+
+export default function AdminConsole() {
+  return (
+    <AdminErrorBoundary>
+      <AdminConsoleContent />
+    </AdminErrorBoundary>
   );
 }

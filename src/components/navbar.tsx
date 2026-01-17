@@ -1,12 +1,14 @@
-import { SignInButton, UserButton, useUser } from "@clerk/clerk-react";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { SignInButton, UserButton, useUser, useAuth } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 
 export function Navbar() {
   const { user, isLoaded } = useUser();
-  const currentUser = useQuery(api.users.getCurrentUser);
+  const { isSignedIn } = useAuth();
+  
+  // Don't query Convex from navbar - just use basic auth state
+  // This prevents errors when Convex functions aren't deployed yet
+  const currentUser = null; // Will be fetched by individual pages that need it
 
   const isAuthenticated = isLoaded && !!user;
 

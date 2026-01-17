@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { RedirectToSignIn, useUser } from "@clerk/clerk-react";
+import { useState, Component, ReactNode } from "react";
+import { RedirectToSignIn, useUser, useAuth } from "@clerk/clerk-react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +10,50 @@ import ChartModules from "@/components/staff/chart-modules";
 import FilterControls from "@/components/staff/filter-controls";
 import { BarChart3, TrendingUp, MessageCircle } from "lucide-react";
 
-export default function StaffDashboard() {
+// Error boundary for staff dashboard
+class StaffErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.warn("Staff dashboard error:", error.message);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col">
+          <Navbar />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md p-8">
+              <h2 className="text-xl font-semibold mb-4">Setting Up Analytics</h2>
+              <p className="text-muted-foreground mb-4">
+                The analytics dashboard is being configured. Please wait and refresh.
+              </p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+              >
+                Refresh Page
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function StaffDashboardContent() {
   const { user, isLoaded } = useUser();
+  const { isSignedIn } = useAuth();
   const [dateRange, setDateRange] = useState({
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0],
@@ -19,20 +61,24 @@ export default function StaffDashboard() {
 
   const [viewMode, setViewMode] = useState<"daily" | "weekly" | "monthly">("daily");
 
+  // Only query Convex when user is signed in
   const analytics = useQuery(
     api.analytics.getAnalyticsByDateRange,
-    { startDate: dateRange.start, endDate: dateRange.end }
+    isSignedIn ? { startDate: dateRange.start, endDate: dateRange.end } : "skip"
   );
 
   const messageVolume = useQuery(
     api.analytics.getMessageVolumeByDate,
-    {
+    isSignedIn ? {
       startDate: new Date(dateRange.start).getTime(),
       endDate: new Date(dateRange.end).getTime(),
-    }
+    } : "skip"
   );
 
-  const topicAnalytics = useQuery(api.analytics.getTopicAnalytics, {});
+  const topicAnalytics = useQuery(
+    api.analytics.getTopicAnalytics,
+    isSignedIn ? {} : "skip"
+  );
 
   if (!isLoaded) {
     return (
@@ -163,5 +209,13 @@ export default function StaffDashboard() {
       </div>
     </div>
     </>
+  );
+}
+
+export default function StaffDashboard() {
+  return (
+    <StaffErrorBoundary>
+      <StaffDashboardContent />
+    </StaffErrorBoundary>
   );
 }

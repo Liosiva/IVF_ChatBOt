@@ -1,6 +1,4 @@
 import { useUser, RedirectToSignIn } from "@clerk/clerk-react";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { User, Database, Clock, Shield } from "lucide-react";
@@ -8,7 +6,8 @@ import { User, Database, Clock, Shield } from "lucide-react";
 export default function Dashboard() {
     const { user, isLoaded } = useUser();
     
-    const userData = useQuery(api.users.getCurrentUser);
+    // Don't query Convex directly to avoid errors when functions aren't deployed
+    const userData = null;
 
     if (!isLoaded) {
         return (

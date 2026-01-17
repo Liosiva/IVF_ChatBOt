@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+// Analytics functions for IVF Platform - sync v4
+
 export const getAnalyticsByDateRange = query({
   args: {
     startDate: v.string(),

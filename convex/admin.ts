@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+// Admin functions for IVF Platform - sync v4
+
 export const getAllUsers = query({
   handler: async (ctx) => {
     const users = await ctx.db

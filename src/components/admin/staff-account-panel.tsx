@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { useAuth } from "@clerk/clerk-react";
 import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
 export default function StaffAccountPanel() {
+  const { isSignedIn } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,8 +20,8 @@ export default function StaffAccountPanel() {
   
   const createStaffAccount = useMutation(api.admin.createStaffAccount);
   const createAdminAccount = useMutation(api.admin.createAdminAccount);
-  const staffUsers = useQuery(api.admin.getUsersByRole, { role: "staff" });
-  const activityLogs = useQuery(api.admin.getActivityLogs, { limit: 10 });
+  const staffUsers = useQuery(api.admin.getUsersByRole, isSignedIn ? { role: "staff" } : "skip");
+  const activityLogs = useQuery(api.admin.getActivityLogs, isSignedIn ? { limit: 10 } : "skip");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

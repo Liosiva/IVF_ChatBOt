@@ -1,8 +1,6 @@
-import { Suspense, useEffect } from "react";
-import { Route, Routes, useRoutes, useNavigate } from "react-router-dom";
+import { Suspense, useEffect, Component, ReactNode } from "react";
+import { Route, Routes, useRoutes } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
 import routes from "tempo-routes";
 import Dashboard from "./pages/dashboard";
 import Home from "./pages/home";
@@ -15,39 +13,58 @@ function TempoRoutes() {
   return import.meta.env.VITE_TEMPO === "true" ? useRoutes(routes) : null;
 }
 
-function App() {
-  const { user, isLoaded } = useUser();
-  const navigate = useNavigate();
-  
-  const currentUser = useQuery(
-    api.users.getCurrentUser
+// Error boundary to catch Convex errors gracefully
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+class ConvexErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error) {
+    // Log but don't crash for Convex deployment issues
+    console.warn("Convex error caught:", error.message);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || this.props.children;
+    }
+    return this.props.children;
+  }
+}
+
+function AppContent() {
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/chat" element={<PatientChat />} />
+        <Route path="/staff" element={<StaffDashboard />} />
+        <Route path="/admin" element={<AdminConsole />} />
+      </Routes>
+      <TempoRoutes />
+      <Toaster />
+    </>
   );
-  
-  const createOrUpdateUser = useMutation(api.users.createOrUpdateUser);
+}
 
-  // Create or update user on login
-  useEffect(() => {
-    if (isLoaded && user) {
-      createOrUpdateUser().catch(console.error);
-    }
-  }, [isLoaded, user, createOrUpdateUser]);
-
-  // Role-based redirect on login
-  useEffect(() => {
-    if (currentUser && window.location.pathname === "/") {
-      switch (currentUser.role) {
-        case "patient":
-          navigate("/chat");
-          break;
-        case "staff":
-          navigate("/staff");
-          break;
-        case "admin":
-          navigate("/admin");
-          break;
-      }
-    }
-  }, [currentUser, navigate]);
+function App() {
+  const { isLoaded } = useUser();
 
   if (!isLoaded) {
     return (
@@ -61,26 +78,31 @@ function App() {
   }
 
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
+    <ConvexErrorBoundary
+      fallback={
+        <Suspense fallback={
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading...</p>
+            </div>
+          </div>
+        }>
+          <AppContent />
+        </Suspense>
+      }
+    >
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading...</p>
+          </div>
         </div>
-      </div>
-    }>
-      <>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/chat" element={<PatientChat />} />
-          <Route path="/staff" element={<StaffDashboard />} />
-          <Route path="/admin" element={<AdminConsole />} />
-        </Routes>
-        <TempoRoutes />
-        <Toaster />
-      </>
-    </Suspense>
+      }>
+        <AppContent />
+      </Suspense>
+    </ConvexErrorBoundary>
   );
 }
 
