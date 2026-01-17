@@ -1,13 +1,29 @@
-import { useUser, RedirectToSignIn } from "@clerk/clerk-react";
+import { useUser, RedirectToSignIn, useAuth } from "@clerk/clerk-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { User, Database, Clock, Shield } from "lucide-react";
+import { useEffect } from "react";
 
 export default function Dashboard() {
     const { user, isLoaded } = useUser();
+    const { isSignedIn } = useAuth();
     
-    // Don't query Convex directly to avoid errors when functions aren't deployed
-    const userData = null;
+    const createOrUpdateUser = useMutation(api.users.createOrUpdateUser);
+    
+    // Create or update user in Convex when signed in
+    useEffect(() => {
+        if (isSignedIn && user) {
+            createOrUpdateUser().catch(console.error);
+        }
+    }, [isSignedIn, user, createOrUpdateUser]);
+    
+    // Query user data from Convex
+    const userData = useQuery(
+        api.users.getCurrentUser,
+        isSignedIn ? undefined : "skip"
+    );
 
     if (!isLoaded) {
         return (

@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-// Chat session functions for IVF Platform - sync v4
+// Chat session functions for IVF Platform - sync v6
 
 export const createSession = mutation({
   args: {

@@ -1,9 +1,12 @@
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { SignInButton, useUser } from "@clerk/clerk-react";
+import { SignInButton, useUser, useAuth } from "@clerk/clerk-react";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { Heart, MessageCircle, BarChart3, Shield } from "lucide-react";
 import { useNavigate } from "react-router";
+import { useEffect } from "react";
 
 const FEATURES = [
   {
@@ -34,9 +37,18 @@ const FEATURES = [
 
 function App() {
   const { user, isLoaded: isUserLoaded } = useUser();
+  const { isSignedIn } = useAuth();
   const navigate = useNavigate();
+  const createOrUpdateUser = useMutation(api.users.createOrUpdateUser);
 
   const isAuthenticated = isUserLoaded && !!user;
+
+  // Create or update user in Convex when signed in
+  useEffect(() => {
+    if (isSignedIn && user) {
+      createOrUpdateUser().catch(console.error);
+    }
+  }, [isSignedIn, user, createOrUpdateUser]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#F5F1E8] via-background to-[#8B9D83]/10">

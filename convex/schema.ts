@@ -1,7 +1,8 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-// IVF Patient Support Platform Schema - Multi-Role Chatbot System v4
+// IVF Patient Support Platform Schema - Multi-Role Chatbot System v6
+// Force deploy trigger
 export default defineSchema({
     users: defineTable({
         name: v.optional(v.string()),

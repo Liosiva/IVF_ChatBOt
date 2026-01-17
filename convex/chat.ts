@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { action, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
 
-// Chat functions for IVF Platform - sync v4
+// Chat functions for IVF Platform - sync v6
 
 // IVF topic keywords for classification
 const TOPIC_KEYWORDS: Record<string, string[]> = {

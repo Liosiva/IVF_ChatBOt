@@ -1,6 +1,6 @@
-import { useState, Component, ReactNode } from "react";
+import { useState, useEffect, Component, ReactNode } from "react";
 import { RedirectToSignIn, useUser, useAuth } from "@clerk/clerk-react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navbar } from "@/components/navbar";
@@ -55,6 +55,15 @@ function AdminConsoleContent() {
   const { user, isLoaded } = useUser();
   const { isSignedIn } = useAuth();
   const [activeTab, setActiveTab] = useState("users");
+  
+  const createOrUpdateUser = useMutation(api.users.createOrUpdateUser);
+  
+  // Create or update user in Convex when signed in
+  useEffect(() => {
+    if (isSignedIn && user) {
+      createOrUpdateUser().catch(console.error);
+    }
+  }, [isSignedIn, user, createOrUpdateUser]);
 
   // Only query Convex when user is signed in
   const users = useQuery(api.admin.getAllUsers, isSignedIn ? undefined : "skip");

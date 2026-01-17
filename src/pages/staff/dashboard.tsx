@@ -1,6 +1,6 @@
-import { useState, Component, ReactNode } from "react";
+import { useState, useEffect, Component, ReactNode } from "react";
 import { RedirectToSignIn, useUser, useAuth } from "@clerk/clerk-react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -60,6 +60,15 @@ function StaffDashboardContent() {
   });
 
   const [viewMode, setViewMode] = useState<"daily" | "weekly" | "monthly">("daily");
+  
+  const createOrUpdateUser = useMutation(api.users.createOrUpdateUser);
+  
+  // Create or update user in Convex when signed in
+  useEffect(() => {
+    if (isSignedIn && user) {
+      createOrUpdateUser().catch(console.error);
+    }
+  }, [isSignedIn, user, createOrUpdateUser]);
 
   // Only query Convex when user is signed in
   const analytics = useQuery(
