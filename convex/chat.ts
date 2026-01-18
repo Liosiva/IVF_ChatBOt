@@ -39,78 +39,96 @@ export const sendMessage = action({
     content: v.string(),
   },
   handler: async (ctx, args) => {
-    // Classify the topic
-    const topic = classifyTopic(args.content);
-    
-    // Store user message
-    await ctx.runMutation(api.chatSessions.addMessage, {
-      sessionId: args.sessionId,
-      userId: args.userId,
-      role: "user",
-      content: args.content,
-    });
-    
-    // Update session title if first message
-    const session = await ctx.runQuery(api.chatSessions.getSessionMessages, {
-      sessionId: args.sessionId,
-    });
-    
-    if (session.length <= 1) {
-      // Set title based on first message
-      const title = args.content.length > 50 
-        ? args.content.substring(0, 50) + "..." 
-        : args.content;
-      await ctx.runMutation(api.chat.updateSessionTitle, {
+    try {
+      // Classify the topic
+      const topic = classifyTopic(args.content);
+      
+      // Store user message
+      await ctx.runMutation(api.chatSessions.addMessage, {
         sessionId: args.sessionId,
-        title: title,
+        userId: args.userId,
+        role: "user",
+        content: args.content,
       });
+      
+      // Update session title if first message
+      const session = await ctx.runQuery(api.chatSessions.getSessionMessages, {
+        sessionId: args.sessionId,
+      });
+      
+      if (session.length <= 1) {
+        // Set title based on first message
+        const title = args.content.length > 50 
+          ? args.content.substring(0, 50) + "..." 
+          : args.content;
+        await ctx.runMutation(api.chat.updateSessionTitle, {
+          sessionId: args.sessionId,
+          title: title,
+        });
+      }
+      
+      // Get relevant context using text-based search from vectorEmbeddings
+      // This searches the content stored in Convex
+      let relevantDocs: Array<{ content: string; source?: string }> = [];
+      let sources: string[] = [];
+      let context = "";
+      
+      try {
+        relevantDocs = await ctx.runQuery(api.rag.searchByContent, {
+          searchText: args.content,
+          limit: 4,
+        });
+        
+        // Build context from retrieved documents
+        context = relevantDocs.map(doc => doc.content).join("\n\n");
+        sources = [...new Set(relevantDocs.map(doc => doc.source).filter((s): s is string => Boolean(s)))];
+      } catch (ragError) {
+        console.error("RAG search error:", ragError);
+        // Continue without RAG context
+      }
+      
+      // Generate response
+      let aiResponse: string;
+      
+      if (relevantDocs.length > 0 && context.trim().length > 0) {
+        // Generate contextual response based on retrieved documents
+        aiResponse = generateContextualResponse(args.content, context, topic);
+      } else {
+        // Fallback response when no relevant context found
+        aiResponse = generateFallbackResponse(topic);
+      }
+      
+      // Store assistant response
+      const messageId = await ctx.runMutation(api.chatSessions.addMessage, {
+        sessionId: args.sessionId,
+        userId: args.userId,
+        role: "assistant",
+        content: aiResponse,
+        sources: sources,
+      });
+      
+      // Update analytics
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        await ctx.runMutation(api.analytics.updateTopicCount, {
+          topic: topic,
+          date: today,
+        });
+      } catch (analyticsError) {
+        console.error("Analytics update error:", analyticsError);
+        // Continue without analytics
+      }
+      
+      return {
+        messageId,
+        response: aiResponse,
+        sources,
+        topic,
+      };
+    } catch (error) {
+      console.error("sendMessage action error:", error);
+      throw error;
     }
-    
-    // Get relevant context using semantic search
-    // Note: In production, you'd call an external embedding API first
-    // For now, we use text-based search
-    const relevantDocs = await ctx.runQuery(api.rag.searchByContent, {
-      searchText: args.content,
-      limit: 4,
-    });
-    
-    // Build context from retrieved documents
-    const context = relevantDocs.map(doc => doc.content).join("\n\n");
-    const sources = [...new Set(relevantDocs.map(doc => doc.source).filter(Boolean))];
-    
-    // Generate response
-    let aiResponse: string;
-    
-    if (relevantDocs.length > 0) {
-      // Generate contextual response based on retrieved documents
-      aiResponse = generateContextualResponse(args.content, context, topic);
-    } else {
-      // Fallback response when no relevant context found
-      aiResponse = generateFallbackResponse(topic);
-    }
-    
-    // Store assistant response
-    const messageId = await ctx.runMutation(api.chatSessions.addMessage, {
-      sessionId: args.sessionId,
-      userId: args.userId,
-      role: "assistant",
-      content: aiResponse,
-      sources: sources as string[],
-    });
-    
-    // Update analytics
-    const today = new Date().toISOString().split('T')[0];
-    await ctx.runMutation(api.analytics.updateTopicCount, {
-      topic: topic,
-      date: today,
-    });
-    
-    return {
-      messageId,
-      response: aiResponse,
-      sources,
-      topic,
-    };
   },
 });
 

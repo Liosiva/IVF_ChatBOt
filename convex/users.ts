@@ -37,8 +37,11 @@ export const getCurrentUser = query({
     const identity = await ctx.auth.getUserIdentity();
     
     if (!identity) {
+      console.log("getCurrentUser: No identity found");
       return null;
     }
+
+    console.log("getCurrentUser: Looking up user with token:", identity.subject);
 
     const user = await ctx.db
       .query("users")
@@ -48,6 +51,7 @@ export const getCurrentUser = query({
       .unique();
 
     if (user !== null) {
+      console.log("getCurrentUser: Found user:", user._id);
       return {
         ...user,
         role: user.role || "patient",
@@ -55,6 +59,7 @@ export const getCurrentUser = query({
       };
     }
 
+    console.log("getCurrentUser: User not found in database");
     return null;
   },
 });
@@ -64,8 +69,11 @@ export const createOrUpdateUser = mutation({
     const identity = await ctx.auth.getUserIdentity();
     
     if (!identity) {
+      console.log("createOrUpdateUser: No identity found - user not authenticated");
       return null;
     }
+
+    console.log("createOrUpdateUser: Processing user with subject:", identity.subject);
 
     const existingUser = await ctx.db
       .query("users")
@@ -75,6 +83,7 @@ export const createOrUpdateUser = mutation({
       .unique();
 
     if (existingUser) {
+      console.log("createOrUpdateUser: Found existing user:", existingUser._id);
       const updates: Record<string, unknown> = {};
       if (existingUser.name !== identity.name) updates.name = identity.name;
       if (existingUser.email !== identity.email) updates.email = identity.email;
@@ -84,6 +93,7 @@ export const createOrUpdateUser = mutation({
       
       if (Object.keys(updates).length > 0) {
         await ctx.db.patch(existingUser._id, updates);
+        console.log("createOrUpdateUser: Updated user with fields:", Object.keys(updates));
       }
       return {
         ...existingUser,
@@ -92,6 +102,7 @@ export const createOrUpdateUser = mutation({
       };
     }
 
+    console.log("createOrUpdateUser: Creating new user for:", identity.email);
     const userId = await ctx.db.insert("users", {
       name: identity.name,
       email: identity.email,
@@ -101,7 +112,9 @@ export const createOrUpdateUser = mutation({
       createdAt: Date.now(),
     });
 
-    return await ctx.db.get(userId);
+    const newUser = await ctx.db.get(userId);
+    console.log("createOrUpdateUser: Created new user:", userId);
+    return newUser;
   },
 });
 
